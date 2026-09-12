@@ -1,0 +1,34 @@
+const question2 = [
+  {
+    id: 1,
+    question: "Quel est le symbole chimique de l'eau ?",
+    propositions: ["O2", "CO2", "H2O", "NaCl"],
+    reponseCorrecte: 2,
+    tempsLimiteSec: 15
+  },
+  {
+    id: 2,
+    question: "Quelle est la planète la plus proche du Soleil ?",
+    propositions: ["Mercure", "Vénus", "Terre", "Mars"],
+    reponseCorrecte: 0,
+    tempsLimiteSec: 15
+  },
+  {
+    id: 3,
+    question: "Quel est l'animal terrestre le plus rapide ?",
+    propositions: ["Le lion", "Le guépard", "L'antilope", "Le léopard"],
+    reponseCorrecte: 1,
+    tempsLimiteSec: 15
+  },
+  {
+    id: 4,
+    question: "Combien de dents un adulte possède-t-il normalement ?",
+    propositions: ["28", "30", "32", "34"],
+    reponseCorrecte: 2,
+    tempsLimiteSec: 15
+  }
+];
+
+if (typeof module !== 'undefined') {
+  module.exports = question2;
+}
