@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مسابقة مقهى الثقافة - Quiz Show</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Modal Connexion Rôles -->
+  <div id="login-modal" class="modal overlay">
+    <div class="modal-card">
+      <h2>🔑 تسجيل الدخول</h2>
+      <p>اختر صفك وأدخل رمز الدخول:</p>
+      <select id="role-select" onchange="updatePasscodeLabel()">
+        <option value="player">🎮 لاعب (Player)</option>
+        <option value="moderator">🛡️ مشرف (Modérateur)</option>
+        <option value="editor">✏️ محرر (Éditeur)</option>
+      </select>
+      <input type="password" id="access-code" placeholder="رمز الدخول..." style="display:none;">
+      <input type="text" id="player-nickname" placeholder="اسمك في اللعبة..." style="display:block;">
+      <button class="action-btn primary" onclick="authenticateUser()">دخول</button>
+    </div>
+  </div>
+
+  <!-- Espace Éditeur Complexe -->
+  <div id="editor-space" class="app-screen hidden">
+    <div class="editor-container">
+      <h2>✏️ لوحة التحكم وإدارة الأسئلة</h2>
+      <button class="action-btn danger" onclick="logout()">خروج 🚪</button>
+
+      <div class="editor-section">
+        <h3>🎨 تخصيص واجهة الترحيب</h3>
+        <label>عنوان المسابقة:</label>
+        <input type="text" id="cfg-title" value="مسابقة مقهى الثقافة">
+        <label>الشعار (رابط/مسار Logo):</label>
+        <input type="text" id="cfg-logo" value="logo.png">
+        <label>مقولة/حكمة اليوم:</label>
+        <input type="text" id="cfg-quote" value="فنجان قهوة ومعرفة تضيء العقول ☕💡">
+        <label>رسالة الترحيب:</label>
+        <input type="text" id="cfg-welcome" value="أهلاً بكم في المسابقة التفاعلية المباشرة!">
+        <label>وقت التفكير لكل سؤال (ثوانٍ):</label>
+        <input type="number" id="cfg-timer" value="15" min="5" max="60">
+      </div>
+
+      <div class="editor-section">
+        <h3>📚 إدارة الأسئلة (Édition des Questions)</h3>
+        <div id="editor-questions-list"></div>
+        <button class="action-btn primary" onclick="addNewQuestionField()" style="margin-bottom: 12px;">➕ إضافة سؤال جديد</button>
+        <button class="action-btn success" onclick="saveEditorSettings()">💾 حفظ كل التغييرات</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interface Principale TikTok Live (Joueur / Modérateur) -->
+  <div id="live-space" class="app-screen hidden">
+    <div class="tiktok-container">
+      
+      <!-- En-tête Live -->
+      <header class="live-header">
+        <div class="brand-info">
+          <img id="display-logo" src="logo.png" alt="Logo" class="live-logo">
+          <div>
+            <h1 id="display-title">مقهى الثقافة</h1>
+            <p id="display-quote">فنجان قهوة ومعرفة ☕</p>
+          </div>
+        </div>
+        <div class="live-status">
+          <span class="badge-live">LIVE 🔴</span>
+          <button class="role-badge" onclick="logout()">🚪 خروج</button>
+        </div>
+      </header>
+
+      <!-- Écran d'accueil avec Bouton Visible par Tous -->
+      <div id="welcome-card" class="welcome-card">
+        <h2 id="display-welcome">أهلاً بكم في المسابقة التفاعلية!</h2>
+        <p style="margin-bottom: 20px;">استعدوا للإجابة عن الأسئلة بسرعة فائقة ⚡</p>
+        <button id="start-game-btn" class="action-btn success" onclick="startGame()">▶️ بدء المسابقة الآن</button>
+      </div>
+
+      <!-- Zone Quiz -->
+      <main id="quiz-area" class="quiz-area hidden">
+        <div class="quiz-meta">
+          <span class="q-counter">السؤال <strong id="q-num">1</strong></span>
+          <div class="timer-circle"><span id="timer">15</span>s</div>
+          <span class="my-score">نقاطي: <strong id="my-score">0</strong></span>
+        </div>
+
+        <div class="question-card">
+          <h2 id="question-text">جاري تحميل السؤال...</h2>
+        </div>
+
+        <div id="options-grid" class="options-grid"></div>
+
+        <!-- Correction affichée à la fin du timer -->
+        <div id="answer-reveal" class="answer-reveal hidden">
+          ✅ الإجابة الصحيحة هي: <strong id="correct-answer-text">---</strong>
+        </div>
+
+        <!-- Contrôle pour passer à la question suivante (Accessible) -->
+        <div class="mod-controls" style="margin-top: 15px;">
+          <button class="action-btn primary" onclick="nextQuestion()">السؤال التالي ⬅️</button>
+        </div>
+      </main>
+
+      <!-- Chat Défilant -->
+      <section class="live-chat-section">
+        <div class="chat-messages" id="chat-messages"></div>
+        <form class="chat-input-bar" onsubmit="sendChatMessage(event)">
+          <input type="text" id="chat-input" placeholder="اكتب تعليقاً..." required>
+          <button type="submit">إرسال</button>
+        </form>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Écran Podium & Classement Général -->
+  <div id="results-space" class="app-screen hidden">
+    <div class="results-container">
+      <h2>🏆 منصة التتويج (Top 4)</h2>
+      
+      <div class="podium">
+        <div class="podium-place place-2">
+          <div class="podium-avatar" id="pod2-emoji">🥈</div>
+          <div class="podium-name" id="pod2-name">---</div>
+          <div class="podium-score" id="pod2-score">0 ن</div>
+          <div class="step">2</div>
+        </div>
+        <div class="podium-place place-1">
+          <div class="crown">👑</div>
+          <div class="podium-avatar" id="pod1-emoji">🥇</div>
+          <div class="podium-name" id="pod1-name">---</div>
+          <div class="podium-score" id="pod1-score">0 ن</div>
+          <div class="step">1</div>
+        </div>
+        <div class="podium-place place-3">
+          <div class="podium-avatar" id="pod3-emoji">🥉</div>
+          <div class="podium-name" id="pod3-name">---</div>
+          <div class="podium-score" id="pod3-score">0 ن</div>
+          <div class="step">3</div>
+        </div>
+        <div class="podium-place place-4">
+          <div class="podium-avatar" id="pod4-emoji">🎖️</div>
+          <div class="podium-name" id="pod4-name">---</div>
+          <div class="podium-score" id="pod4-score">0 ن</div>
+          <div class="step">4</div>
+        </div>
+      </div>
+
+      <div class="full-leaderboard">
+        <h3>📊 الترتيب العام لجميع المشاركين</h3>
+        <ul id="leaderboard-list"></ul>
+      </div>
+
+      <button class="action-btn primary" onclick="resetEntireGame()">🔄 إعادة لعبة جديدة</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
